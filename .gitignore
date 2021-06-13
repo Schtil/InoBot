@@ -1,0 +1,6 @@
+/vendor
+composer.phar
+.idea
+.env
+composer.lock
+/git-deploy
