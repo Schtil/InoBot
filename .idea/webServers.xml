@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="7acf1c92-7f6a-41e5-8879-7a3ecf07193d" name="Ino" url="https://ino.schtil.com">
+        <fileTransfer rootFolder="/var/www/ino" accessType="SFTP" host="ino.schtil.com" port="22" sshConfigId="033223db-a3ce-4332-9c7c-cc34bd8d5e26" sshConfig="root@ino.schtil.com:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
