@@ -33,7 +33,7 @@ function logging($data)
     else {
         $log = "";
     }
-    $log = "[".date("d-m-Y H:i:s")."] ".json_encode($data).PHP_EOL.PHP_EOL.$log;
+    $log = "[".date("d-m-Y H:i:s")."] ".json_encode($data, JSON_UNESCAPED_UNICODE).PHP_EOL.PHP_EOL.$log;
     file_put_contents("log.txt", $log);
 }
 
