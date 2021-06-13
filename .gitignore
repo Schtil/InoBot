@@ -4,3 +4,4 @@ composer.phar
 .env
 composer.lock
 /git-deploy
+log.txt
