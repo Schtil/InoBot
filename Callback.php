@@ -27,7 +27,6 @@ switch ($type)
                 $isComplimentMessage = isComplimentMessage($text);
 
                 if($isComplimentMessage) {
-                    $nameReaction = getReaction();
                     $api = request("reactions.add",
                         [
                             "token"     => ENV("TOKEN"),
@@ -86,21 +85,18 @@ function isComplimentMessage($text)
     return true;
 }
 
-function getPushingUsers($text)
+function getPushingUsers($text): array
 {
-    $found = true;
     $users = [];
-    while($found) {
+    while(true) {
         $numStart = mb_stripos($text, "<@");
         if($numStart === false) {
-            $found = false;
             break;
         }
         $text = mb_substr($text, $numStart+2);
 
         $numEnd = mb_stripos($text, ">");
         if($numEnd === false) {
-            $found = false;
             break;
         }
         $users[] = mb_substr($text,0,$numEnd);
