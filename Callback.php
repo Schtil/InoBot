@@ -7,7 +7,7 @@ if(!isset($data["type"])) {
 }
 
 $type = $data["type"];
-
+logging($data);
 switch ($type)
 {
     case "url_verification":
@@ -46,7 +46,6 @@ switch ($type)
         break;
 
     default:
-        logging($data);
         break;
 }
 
