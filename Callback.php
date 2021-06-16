@@ -99,7 +99,7 @@ function getDBUser($slack_id, $team_id)
 function isAvailableCompliment($dbUser, $teamId, $count)
 {
     $log = R::find("log", "author_slack_id = ? AND created_at > ? AND team_id = ?", [$dbUser->slack_id, date("Y-m-d")." 00:00:00", $teamId]);
-    if(ENV("LIMIT_COMPLIMENT", 5) <= $count + count($log)) {
+    if(ENV("LIMIT_COMPLIMENT", 5) >= $count + count($log)) {
         return true;
     }
     return false;
