@@ -1,5 +1,5 @@
 <?php
-
+include 'rb.php';
 $data = json_decode(file_get_contents('php://input'),1);
 if(!isset($data["type"])) {
     http_response_code(406);
@@ -8,6 +8,10 @@ if(!isset($data["type"])) {
 
 $type = $data["type"];
 logging($data);
+
+
+R::setup( 'mysql:host='.ENV("MYSQL_HOST", "localhost").';dbname='.ENV("MYSQL_DATABASE", "InoBot").'', ENV("MYSQL_USERNAME", "InoBot") , ENV("MYSQL_PASSWORD", "InoBot") );
+
 switch ($type)
 {
     case "url_verification":
@@ -24,18 +28,39 @@ switch ($type)
                 $team = $event["team"];
                 $channel = $event["channel"];
                 $timestamp = $event["event_ts"];
-                $isComplimentMessage = isComplimentMessage($text);
-
-                if($isComplimentMessage) {
-                    $api = request("reactions.add",
-                        [
-                            "token"     => ENV("TOKEN"),
-                            "channel"   => $channel,
-                            "name"      => ENV("NAME_REACTION", "taco"),
-                            "timestamp" => $timestamp,
-                        ]);
+                $pushingUsers = getPushingUsers($text);
+                $dbAuthor = getDBUser($author, $team);
+                if(count($pushingUsers) == 0) {
+                    break;
                 }
-//                $pushingUsers = getPushingUsers($text);
+                if(!isAvailableCompliment($dbAuthor, $team, count($pushingUsers))) {
+                    request("chat.postMessage", [
+                        "channel" => $channel,
+                        "as_user" => true,
+                        "text" => "Извини, ты исчерпал лимит на сегодня :(",
+                    ]);
+                    request("reactions.add", [
+                        "channel" => $channel,
+                        "name" => "no_entry_sign",
+                        "timestamp" => $timestamp,
+                    ]);
+                    break;
+                }
+                foreach($pushingUsers as $pushUser) {
+                    $dbUser = getDBUser($pushUser, $team);
+                    $dbUser->credits++;
+
+                    $log = R::dispense("log");
+                    $log->author_slack_id = $dbAuthor->id;
+                    $log->from_slack_id = $pushUser;
+                    $log->type = "add_compliment";
+                    R::store($log);
+                }
+                request("reactions.add", [
+                    "channel" => $channel,
+                    "name" => ENV("NAME_REACTION", "taco"),
+                    "timestamp" => $timestamp,
+                ]);
                 break;
 
             default:
@@ -53,6 +78,30 @@ switch ($type)
 // -------------
 // Functions
 
+function getDBUser($slack_id, $team_id)
+{
+    $dbUser = R::findOne( 'users', ' slack_id = ? AND team_id = ?', [ $slack_id , $team_id ] );
+    if(!$dbUser) {
+        $dbUser = R::dispense("users");
+        $apiAuthor = request("users.info", ["user" => $slack_id]);
+        $dbUser->slack_id = $slack_id;
+        $dbUser->email = $apiAuthor["user"]["profile"]["email"];
+        $dbUser->name = $apiAuthor["user"]["profile"]["real_name_normalized"];
+        $dbUser->team_id = $team_id;
+        R::store($dbUser);
+    }
+    return $dbUser;
+}
+
+function isAvailableCompliment($dbUser, $teamId, $count)
+{
+    $log = R::find("log", "author_slack_id = ? AND created_at > ? AND team_id = ?", [$dbUser->slack_id, date("Y-m-d")." 00:00:00", $teamId]);
+    if(ENV("LIMIT_COMPLIMENT", 5) <= $count + count($log)) {
+        return true;
+    }
+    return false;
+}
+
 function request($method, $params = [])
 {
     $curl = curl_init();
@@ -67,12 +116,13 @@ function request($method, $params = [])
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => http_build_query($params),
         CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/x-www-form-urlencoded'
+            'Content-Type: application/x-www-form-urlencoded',
+            'Authorization: Bearer '.ENV("TOKEN"),
         ),
     ));
     $response = curl_exec($curl);
     curl_close($curl);
-    return $response;
+    return json_decode($response,1);
 }
 
 
@@ -101,7 +151,7 @@ function getPushingUsers($text): array
         $users[] = mb_substr($text,0,$numEnd);
         $text = mb_substr($text, $numEnd+1);
     }
-    return $users;
+    return array_unique($users);
 }
 
 function logging($data)
