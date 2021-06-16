@@ -34,9 +34,10 @@ switch ($type)
                     break;
                 }
                 if(!isAvailableCompliment($dbAuthor, $team, count($pushingUsers))) {
-                    request("chat.postMessage", [
+                    request("chat.postEphemeral", [
                         "channel" => $channel,
                         "as_user" => true,
+                        "user" => $author,
                         "text" => "Извини, ты исчерпал лимит на сегодня :(",
                     ]);
                     request("reactions.add", [
@@ -49,11 +50,13 @@ switch ($type)
                 foreach($pushingUsers as $pushUser) {
                     $dbUser = getDBUser($pushUser, $team);
                     $dbUser->credits++;
+                    R::store($dbUser);
 
                     $log = R::dispense("log");
-                    $log->author_slack_id = $dbAuthor->id;
+                    $log->author_slack_id = $dbAuthor->slack_id;
                     $log->from_slack_id = $pushUser;
                     $log->type = "add_compliment";
+                    $log->team_id = $team;
                     R::store($log);
                 }
                 request("reactions.add", [
