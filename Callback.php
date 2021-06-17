@@ -7,7 +7,7 @@ if(!isset($data["type"])) {
 }
 
 $type = $data["type"];
-logging($data);
+//logging($data);
 
 
 R::setup( 'mysql:host='.ENV("MYSQL_HOST", "localhost").';dbname='.ENV("MYSQL_DATABASE", "InoBot").'', ENV("MYSQL_USERNAME", "InoBot") , ENV("MYSQL_PASSWORD", "InoBot") );
@@ -34,6 +34,9 @@ switch ($type)
                     break;
                 }
                 if(!isComplimentMessage($text)) {
+                    break;
+                }
+                if(isset($event["thread_ts"])) {
                     break;
                 }
                 if(!isAvailableCompliment($dbAuthor, $team, count($pushingUsers))) {
