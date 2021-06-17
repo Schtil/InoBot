@@ -143,7 +143,7 @@ else {
         <tbody>
         <?php
         while($user = $collection->next()) {
-            if($user->team_id != "T024P5NRM9T") {
+            if($user->team_id != ENV("TEAM_WEB", "T024P5NRM9T")) {
                 continue;
             }
             if(!isset($_GET["submit"])) {
