@@ -28,9 +28,12 @@ switch ($type)
                 $team = $event["team"];
                 $channel = $event["channel"];
                 $timestamp = $event["event_ts"];
-                $pushingUsers = getPushingUsers($text);
+                $pushingUsers = getPushingUsers($text, $author);
                 $dbAuthor = getDBUser($author, $team);
                 if(count($pushingUsers) == 0) {
+                    break;
+                }
+                if(!isComplimentMessage($text)) {
                     break;
                 }
                 if(!isAvailableCompliment($dbAuthor, $team, count($pushingUsers))) {
@@ -137,7 +140,7 @@ function isComplimentMessage($text)
     return true;
 }
 
-function getPushingUsers($text): array
+function getPushingUsers($text, $author): array
 {
     $users = [];
     while(true) {
@@ -154,7 +157,7 @@ function getPushingUsers($text): array
         $users[] = mb_substr($text,0,$numEnd);
         $text = mb_substr($text, $numEnd+1);
     }
-    return array_unique($users);
+    return array_diff( array_unique($users), [$author]);
 }
 
 function logging($data)
