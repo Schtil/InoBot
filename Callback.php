@@ -7,7 +7,9 @@ if(!isset($data["type"])) {
 }
 
 $type = $data["type"];
-//logging($data);
+if(ENV("LOG_MODE", 0)) {
+    logging($data);
+}
 
 
 R::setup( 'mysql:host='.ENV("MYSQL_HOST", "localhost").';dbname='.ENV("MYSQL_DATABASE", "InoBot").'', ENV("MYSQL_USERNAME", "InoBot") , ENV("MYSQL_PASSWORD", "InoBot") );
