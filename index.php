@@ -41,6 +41,7 @@ function ENV($index, $default = NULL)
 {
     $file = file_get_contents(".env");
     $file = explode(PHP_EOL, $file);
+    unset($file[count($file-1)]);
     $params = [];
     foreach($file as $item)
     {
